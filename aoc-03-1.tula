@@ -1,0 +1,60 @@
+run Start {
+	'x' 'm' 'u' 'l' '(' 2 ',' 4 ')' '%' '&' 'm' 'u' 'l' '[' 3 ',' 7 ']' '!' '@' '^' 'd' 'o' '_' 'n' 'o' 't' '_' 'm' 'u' 'l' '(' 5 ',' 5 ')' '+' 'm' 'u' 'l' '(' 32 ',' 64 ']' 't' 'h' 'e' 'n' '(' 'm' 'u' 'l' '(' 11 ',' 8 ')' 'm' 'u' 'l' '(' 8 ',' 5 ')' ')'
+	|
+}
+
+for c in String
+case Start c c . (Search 0)
+for n in Integer
+case Start n n . (Search 0)
+
+for t in Integer {
+	case (Search t) 'm' . -> (M t)
+	for c in String - { 'm' }
+	case (Search t) c . -> (Search t)
+	for x in Integer
+	case (Search t) x . -> (Search t)
+
+	case (M t) 'u' . -> (MU t)
+	for c in String - { 'u' }
+	case (M t) c . -> (Search t)
+
+	case (MU t) 'l' . -> (MUL t)
+	for c in String - { 'l' }
+	case (MU t) c . -> (Search t)
+
+	case (MUL t) '(' . -> (MUL$ t)
+	for c in String - { '(' }
+	case (MUL t) c . -> (Search t)
+
+	for a in Integer
+	case (MUL$ t) a . -> (MUL t a)
+	for c in String
+	case (MUL$ t) c . -> (Search t)
+
+	for a in Integer {
+		case (MUL t a) ',' . -> (MUL$ t a)
+		for c in String - { ',' }
+		case (MUL t a) c . -> (Search t)
+		for x in Integer
+		case (MUL t a) x . -> (Search t)
+	}
+
+	for a b in Integer
+	case (MUL$ t a) b . -> (MUL t a b)
+	for a in Integer
+	for c in String
+	case (MUL$ t a) c . -> (Search t)
+
+	for a b in Integer
+	case (MUL t a b) ')' . -> (Search t [a * b])
+	for a b in Integer
+	for c in String
+	case (MUL t a b) c . -> (Search t)
+	
+	for x in Integer
+	for c in String
+	case (Search t x) c c . (Search [t + x])
+	
+	case (Search t) | t ! HALT
+}

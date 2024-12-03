@@ -1,0 +1,124 @@
+run Start {
+	'x' 'm' 'u' 'l' '(' 2 ',' 4 ')' '&' 'm' 'u' 'l' '[' 3 ',' 7 ']' '!' '^' 'd' 'o' 'n' '🍆' 't' '(' ')' '_' 'm' 'u' 'l' '(' 5 ',' 5 ')' '+' 'm' 'u' 'l' '(' 32 ',' 64 ']' '(' 'm' 'u' 'l' '(' 11 ',' 8 ')' 'u' 'n' 'd' 'o' '(' ')' '?' 'm' 'u' 'l' '(' 8 ',' 5 ')' ')'
+	|
+}
+
+let Bool { true false }
+
+for c in String
+case Start c c . (Search 0)
+for n in Integer
+case Start n n . (Search 0)
+
+for t in Integer {
+	case (Search t) 'm' . -> (M t)
+	case (Search t) 'd' . -> (D t)
+	for c in String - { 'm' 'd' }
+	case (Search t) c . -> (Search t)
+	for x in Integer
+	case (Search t) x . -> (Search t)
+
+	case (M t) 'u' . -> (MU t)
+	for c in String - { 'u' }
+	case (M t) c . -> (Search t)
+
+	case (MU t) 'l' . -> (MUL t)
+	for c in String - { 'l' }
+	case (MU t) c . -> (Search t)
+
+	case (MUL t) '(' . -> (MUL$ t)
+	for c in String - { '(' }
+	case (MUL t) c . -> (Search t)
+
+	for a in Integer
+	case (MUL$ t) a . -> (MUL t a)
+	for c in String
+	case (MUL$ t) c . -> (Search t)
+
+	for a in Integer {
+		case (MUL t a) ',' . -> (MUL$ t a)
+		for c in String - { ',' }
+		case (MUL t a) c . -> (Search t)
+		for x in Integer
+		case (MUL t a) x . -> (Search t)
+	}
+
+	for a b in Integer
+	case (MUL$ t a) b . -> (MUL t a b)
+	for a in Integer
+	for c in String
+	case (MUL$ t a) c . -> (Search t)
+
+	for a b in Integer
+	case (MUL t a b) ')' . -> (Search t [a * b])
+	for a b in Integer
+	for c in String
+	case (MUL t a b) c . -> (Search t)
+	
+	for x in Integer
+	for c in String
+	case (Search t x) c c . (Search [t + x])
+	
+	case (D t) 'o' . -> (DO t)
+	for c in String - { 'o' }
+	case (D t) c . -> (Search t)
+	for x in Integer
+	case (D t) x . -> (Search t)
+	
+	case (DO t) 'n' . -> (DON t)
+	for c in String - { 'n' }
+	case (DO t) c . -> (Search t)
+	for x in Integer
+	case (DO t) x . -> (Search t)
+	
+	case (DON t) '🍆' . -> (DON$ t)
+	for c in String - { '🍆' }
+	case (DON t) c . -> (Search t)
+	for x in Integer
+	case (DON t) x . -> (Search t)
+	
+	case (DON$ t) 't' . -> (DONT$ t)
+	for c in String - { 't' }
+	case (DON$ t) c . -> (Search t)
+	for x in Integer
+	case (DON$ t) x . -> (Search t)
+	
+	case (DONT$ t) '(' . -> (DONT$$ t)
+	for c in String - { '(' }
+	case (DONT$ t) c . -> (Search t)
+	for x in Integer
+	case (DONT$ t) x . -> (Search t)
+	
+	case (DONT$$ t) ')' . -> (DONT t)
+	for c in String - { ')' }
+	case (DONT$$ t) c . -> (Search t)
+	for x in Integer
+	case (DONT$$ t) x . -> (Search t)
+	
+	case (DONT t) 'd' . -> (DONTD t)
+	for c in String - { 'd' }
+	case (DONT t) c . -> (DONT t)
+	for x in Integer
+	case (DONT t) x . -> (DONT t)
+	
+	case (DONTD t) 'o' . -> (DONTDO t)
+	for c in String - { 'o' }
+	case (DONTD t) c . -> (DONT t)
+	for x in Integer
+	case (DONTD t) x . -> (DONT t)
+	
+	case (DONTDO t) '(' . -> (DONTDO$ t)
+	for c in String - { '(' }
+	case (DONTDO t) c . -> (DONT t)
+	for x in Integer
+	case (DONTDO t) x . -> (DONT t)
+	
+	case (DONTDO$ t) ')' . -> (Search t)
+	for c in String - { ')' }
+	case (DONTDO$ t) c . -> (DONT t)
+	for x in Integer
+	case (DONTDO$ t) x . -> (DONT t)
+	
+	for S in { Search D DO DON DON$ DONT$ DONT$$ DONT DONTD DONTDO DONTDO$ }
+	case (S t) | t ! HALT
+}
