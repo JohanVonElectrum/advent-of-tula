@@ -1,0 +1,42 @@
+run Bubble_Sort {
+	|
+	3 4 2 1 3 3
+	.
+	4 3 5 3 9 3
+	|
+}
+
+case Start | | <- Setup
+case Setup | 0 <- Setup$
+case Setup$ | | -> Setup$
+case Setup$ 0 0 -> Grab
+
+case Grab | | -> Grab
+case Grab + + -> Grab
+for n in Integer
+case Grab n + -> (Move n)
+for n x in Integer
+case (Move n) x x -> (Move n)
+for n in Integer
+case (Move n) . . -> (Count n 0)
+
+for n t in Integer
+case (Count n t) n n -> (Count n [t + 1])
+for n t x in Integer
+case (Count n t) x x -> (Count n t)
+
+for n t in Integer
+case (Count n t) | | <- (Update [n * t])
+
+for n x in Integer
+case (Update n) x x <- (Update n)
+for n in Integer {
+	case (Update n) . . <- (Update n)
+	case (Update n) + + <- (Update n)
+	case (Update n) | | <- (Update$ n)
+}
+
+for n t in Integer
+case (Update$ n) t [t + n] -> Grab
+
+case Grab . . ! HALT

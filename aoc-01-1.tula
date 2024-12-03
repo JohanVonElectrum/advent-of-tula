@@ -1,0 +1,78 @@
+run Bubble_Sort {
+	|
+	. 3 4 2 1 3 3 .
+	. 4 3 5 3 9 3 .
+	|
+}
+
+case Bubble_Sort | | -> Bubble_Sort
+case Bubble_Sort . . -> Loop
+
+for n in Integer
+case Loop n n -> (Loop n)
+
+for n m in Integer {
+    case (Loop n) m m . (Swap? [n > m] n m)
+
+    case (Swap? false n m) m m -> (Loop m)
+    case (Swap? true  n m) m n <- (Swap1 n m)
+    case (Swap1 n m)       n m -> (Swap2 n m)
+    case (Swap2 n m)       n n -> (Loop n)
+}
+
+for n in Integer {
+    case (Loop n)   . n <- (Narrow n)
+    case (Narrow n) n . <- Reset
+}
+
+for n in Integer
+case Reset n n <- Reset
+case Reset . . -> Loop
+
+case Loop . . -> Next
+for n in Integer
+case Next n n -> Next
+case Next . . -> Loop
+case Next | | <- Fetch
+
+case Fetch . . <- Fetch1
+case Fetch1 . . <- Fetch1
+case Fetch0 . . -> Grab
+for n in Integer {
+	case Fetch n n <- Fetch
+	case Fetch1 n n <- Fetch0
+	case Fetch0 n n <- Fetch0
+}
+
+for n in Integer {
+	case Grab n . -> (Grab n)
+	case (Grab n) . . -> (Grab2 n)
+	case (Grab2 n) . . -> (Grab2 n)
+	case (W$ n) | | -> (W$$ n)
+	case (W$$ n) | | <- (W n)
+	case (W n) | n <- Back
+	case Back n n <- Back
+}
+for m n in Integer {
+	case (Grab n) m m -> (Grab n)
+	case (Grab2 n) m . -> (Grab [m > n] m n)
+	case (Grab true m n) | | -> (W$ [m - n])
+	case (Grab false m n) | | -> (W$ [n - m])
+	case (W$ n) m m -> (W$ n)
+}
+for m n x in Integer {
+	for b in {true false}
+	case (Grab b m n) x x -> (Grab b m n)
+}
+case Back | | <- Fetch
+
+case Fetch1 | | -> Search
+case Search . . -> Search
+case Search | | -> Sum
+for n in Integer {
+	case Sum n n -> (Sum n)
+	case (Sum n) | | -> (Result n)
+	case (Result n) | n ! HALT
+}
+for n m in Integer
+case (Sum n) m m -> (Sum [n + m])
