@@ -1,0 +1,235 @@
+trace Start {
+	_
+	7 6 4 2 1 .
+	1 2 7 8 9 .
+	9 7 6 2 1 .
+	1 3 2 4 5 .
+	8 6 4 4 1 .
+	1 3 6 7 9 .
+	| .
+}
+
+// 1 2 5 3 4 . | _ _ _ _ _ . _ _ _ _ _ . _ _ _ _ _ . _ _ _ _ _ . _ _ _ _ _ . _ _ _ _ _ .
+// _ 2 5 3 4 . | 1 _ _ _ _ . _ _ _ _ _ . 1 _ _ _ _ . 1 _ _ _ _ . 1 _ _ _ _ . 1 _ _ _ _ .
+// _ _ 5 3 4 . | 1 2 _ _ _ . _ 2 _ _ _ . 1 _ _ _ _ . 1 2 _ _ _ . 1 2 _ _ _ . 1 2 _ _ _ .
+// _ _ _ 3 4 . | 1 2 5 _ _ . _ 2 5 _ _ . 1 _ 5 _ _ . 1 2 _ _ _ . 1 2 _ _ _ . 1 2 3 _ _ .
+// _ _ _ _ 4 . | 1 2 5 3 _ . _ 2 5 3 _ . 1 _ 5 3 _ . 1 2 _ 3 _ . 1 2 5 _ _ . 1 2 5 3 _ .
+// _ _ _ _ _ . | 1 2 5 3 4 . _ 2 5 3 4 . 1 _ 5 3 4 . 1 2 _ 3 4 . 1 2 5 _ 4 . 1 2 3 3 _ .
+// _ _ _ _ _ . | + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + | 1 2 5 3 4 . 2 5 3 4 . 1 5 3 4 . 1 2 3 4 . 1 2 5 4 . 1 2 5 3 . | 0
+
+// Setup
+
+case Start _ _ -> (Count 0 0)
+
+for t c n in Integer
+case (Count t c) n n -> (Count t [c + 1])
+for t c in Integer
+case (Count t c) . . -> (Setup t c)
+
+for t c n in Integer
+case (Setup t c) n n -> (Setup t c)
+for t c in Integer {
+	case (Setup t c) . . -> (Setup t c)
+	case (Setup t c) | | -> (Setup t c [c + 1] c)
+}
+
+for t c in Integer {
+	for p in Integer - { 0 } {
+		case (Setup t c p 0) . . -> (Setup t c [p - 1] c)
+		for i in Integer - { 0 }
+		case (Setup t c p i) . _ -> (Setup t c p [i - 1])
+	}
+	case (Setup t c 0 c) . | -> (Back$ t c)
+	case (Back$ t c) . . <- (Back$ t c)
+	case (Back$ t c) | | <- (Back t c)
+}
+
+
+// Fetch
+
+for t c in Integer {
+	case (Back t c) . . <- (Back t c)
+	case (Back t c) _ _ <- (Back t c)
+	case (Back t c) | | <- (Fetch t c 1)
+}
+
+for t c n in Integer {
+	case (Back t c) n n <- (Back t c)
+	case (Fetch t c n) . . <- (Fetch t c n)
+	case (Fetch t c n) _ _ -> (Grab t c n)
+	case (Back t c n) . . <- (Back t c n)
+	case (Back t c n) _ _ <- (Back t c n)
+	case (Back t c n) | | <- (Fetch t c n)
+}
+
+for t c n m in Integer {
+	case (Fetch t c n) m m <- (Fetch t c n)
+	case (Grab t c m) n _ -> (Grab t c n m)
+	case (Grab t c n m) . . -> (Grab t c n m)
+	for x in Integer
+	case (Grab t c n m) x x -> (Grab t c n m)
+	case (Back t c n) m m <- (Back t c n)
+}
+
+// Expand
+
+for t c n m in Integer {
+	case (Grab t c n m) | | -> (Expand t c n m 0 1)
+	case (Expand t c n m 0 m) _ n -> (Next t c n 0 m)
+	case (Expand t c n m m m) _ _ -> (Next t c n m m)
+	for p in Integer - { m } {
+		case (Expand t c n m p m) _ n -> (Next t c n p m)
+		for j in Integer
+		case (Expand t c n m p j) _ _ -> (Expand t c n m p [j + 1])
+	}
+	for p in Integer {
+		case (Next t c n p m) _ _ -> (Next t c n p m)
+		case (Next t c n p m) . . -> (Expand t c n m [p + 1] 1 )
+	}
+	for i j in Integer {
+		case (Expand t c n m i j) | | <- (Back t c [m + 1])
+		for x in Integer
+		case (Expand t c n m i j) x x -> (Expand t c n m i [j + 1])
+	}
+}
+
+// Reduce
+
+for t c x in Integer
+case (Grab t c x) . _ -> (Reduce t)
+
+for t x in Integer
+case (Reduce t) x x -> (Reduce t)
+for t in Integer {
+	case (Reduce t) . . -> (Reduce t)
+	case (Reduce t) | | -> (Reduce$ t)
+	case (Reduce$ t) . + -> (Push t)
+}
+
+for t n in Integer {
+	case (Reduce$ t) n + -> (Reduce$ t n)
+	case (Reduce$ t n) . . -> (Reduce$ t n)
+	case (Reduce$ t n) _ _ -> (Reduce$ t n)
+	case (Reduce$ t n) | | -> (Reduce$$ t n)
+	case (Reduce$$ t n) . n -> (Reduce$$ t)
+	case (Reduce$$ t n) _ _ -> (Reduce$$ t n)
+}
+
+for t n x in Integer {
+	case (Reduce$ t n) x x -> (Reduce$ t n)
+	case (Reduce$$ t n) x x -> (Reduce$$ t n)
+}
+
+for t in Integer {
+	case (Reduce$ t) _ + -> (Reduce$ t)
+	case (Reduce$$ t) . . <- (Reduce$$ t)
+	case (Reduce$$ t) | | <- (Reduce$$ t)
+	case (Reduce$$ t) _ _ <- (Reduce$$ t)
+	case (Reduce$$ t) + + -> (Reduce$ t)
+	case (Push t) _ _ -> (Push t)
+	case (Push t) . . -> (Push t)
+	case (Push t) | | -> (Push$ t)
+	case (Push$ t) _ _ -> (Push$ t)
+	case (Push$ t) . . -> (Push$$ t)
+	case (Push$$ t) . . <- (Push$$$ t)
+	case (Push$$$ t) . + <- (Reduce$$ t)
+	case (Reduce$ t) | | -> (Adapt t)
+}
+
+for t x in Integer {
+	case (Reduce$$ t) x x <- (Reduce$$ t)
+	case (Push t) x x -> (Push t)
+	case (Push$ t) x x -> (Push$ t)
+	case (Reduce$$$ t) x x <- (Reduce$$ t)
+	case (Reduce$$ t x) + _ -> (_Reduce$$ t x)
+	case (_Reduce$$ t x) . x -> (Reduce$$ t)
+}
+
+// Adapt
+
+for t in Integer {
+	case (Adapt t) _ . -> (Adapt t)
+	case (Adapt t) + . -> (Adapt t)
+	case (Adapt t) . | -> (Prepare t)
+	case (Prepare t) . t <- Prepare
+}
+
+for t x in Integer
+case (Adapt t) x x -> (Adapt t)
+
+case Prepare | | <- Prepare
+case Prepare . . <- Prepare
+for x in Integer
+case Prepare x x <- Prepare
+case Prepare + + -> Check
+case Check | | -> (Test 0)
+
+// Test
+
+let Valid { 1 2 3 }
+let Invalid Integer - Valid
+let Mode { inc dec }
+
+for t a in Integer
+case (Test t) a a -> (Test t a)
+for t a b in Integer {
+	case (Test t a) b b . (Test t a b [a > b] [b > a])
+	case (Test t a b false false) b b -> (Next t)
+	case (Test t a b false true) b b . (Test t inc b [b - a])
+	case (Test t a b true false) b b . (Test t dec b [a - b])
+}
+
+for t n in Integer
+for m in Mode {
+	for v in Valid
+	case (Test t m n v) n n -> (Test t m n)
+	for v in Invalid
+	case (Test t m n v) n n -> (Next t)
+}
+
+for t a b in Integer {
+	case (Test t inc a) b b . (Test t inc b [b - a])
+	case (Test t dec a) b b . (Test t dec b [a - b])
+}
+
+for t x in Integer
+case (Next t) x x -> (Next t)
+
+for t in Integer
+case (Next t) . . -> (Test t)
+
+for t x in Integer
+for m in Mode
+case (Test t m x) . . -> (Test [t + 1])
+
+for t in Integer
+case (Test t) | | -> (Check [t >= 1])
+
+for t in Integer {
+	case (Check true) t . <- (Reset [t + 1])
+	case (Check false) t . <- (Reset t)
+}
+
+// Reset
+
+for t in Integer {
+	case (Reset t) | . <- (Reset t)
+	case (Reset t) . . <- (Reset t)
+	case (Reset t) + . <- (Reset$ t)
+	case (Reset$ t) + . <- (Reset$ t)
+	for x in Integer
+	case (Reset t) x . <- (Reset t)
+}
+
+for t in Integer {
+	case (Reset$ t) | | <- (Reset$$ t)
+	case (Reset$$ t) . . <- (Reset$$ t)
+	case (Reset$$ t) _ _ -> (Count t 0)
+	for x in Integer
+	case (Reset$$ t) x x <- (Reset$$ t)
+}
+
+// Final
+
+for t x in Integer
+case (Count t x) | t ! HALT

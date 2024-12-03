@@ -1,0 +1,39 @@
+run (Test 0) {
+	7 6 4 2 1 .
+	1 2 7 8 9 .
+	9 7 6 2 1 .
+	1 3 2 4 5 .
+	8 6 4 4 1 .
+	1 3 6 7 9 .
+}
+
+for t in Integer {
+	case (Next t) . . -> (Test t)
+	case (Test t) . t ! HALT
+}
+for t n in Integer {
+	case (Test t) n n -> (Test t n)
+	for m in { 1 2 3 } {
+		case (Test t inc m) n n -> (Next t inc n)
+		case (Test t dec m) n n -> (Next t dec n)
+	}
+	for m in Integer - { 1 2 3 } {
+		case (Test t inc m) n n . (Next t)
+		case (Test t dec m) n n . (Next t)
+	}
+	case (Next t inc n) . . -> (Test [t + 1])
+	case (Next t dec n) . . -> (Test [t + 1])
+	case (Next t) n n -> (Next t)
+}
+for t n m in Integer {
+	case (Test t n) m m . (Test t [n > m] n m)
+	case (Next t inc n) m m . (Test t inc n m)
+	case (Next t dec n) m m . (Test t dec n m)
+}
+for t n m x in Integer {
+	case (Test t true n m) x x . (Test t dec n m)
+	case (Test t false n m) x x . (Test t inc n m)
+	
+	case (Test t inc n m) x x . (Test t inc [m - n])
+	case (Test t dec n m) x x . (Test t dec [n - m])
+}
