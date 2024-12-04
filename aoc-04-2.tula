@@ -1,0 +1,142 @@
+run Start {
+	|
+	M M M S X X M A S M .
+	M S A M X M S M S A .
+	A M X S X M A A M M .
+	M S A M A S M S M X .
+	X M A S A M X A M M .
+	X X A M M X X A M A .
+	S M S M S A S X S S .
+	S A X A M A S A A A .
+	M A M M M X M M M M .
+	M X M X A X M A S X |
+}
+
+let Char { X M A S }
+let Edge { M S }
+let Direction { H V DL DR }
+let Bool { true false }
+let State {
+	$ $2 $3
+}
+
+case Start | | -> (Count 1 0)
+
+// START GOTO DEF
+for ti tj ci cj in Integer
+for s in State
+for x y in Edge
+for t h w in Integer {
+	case (GOTO ti tj ci cj s x y t h w) . . . (GOTO ti tj ci cj [ti > ci] [ti < ci] [tj > cj] [tj < cj] s x y t h w)
+	for b1 b2 in Bool {
+		case (GOTO ti tj ci cj true false b1 b2 s x y t h w) . . -> (GOTO ti tj [ci + 1] 1 s x y t h w)
+		case (GOTO ti tj ci cj false true b1 b2 s x y t h w) . . <- (GOTO ti tj [ci - 1] w s x y t h w)
+	}
+	case (GOTO ti tj ci cj false false true false s x y t h w) . . -> (GOTO ti tj [ci + 1] 1 s x y t h w)
+	case (GOTO ti tj ci cj false false false true s x y t h w) . . <- (GOTO ti tj [ci - 1] w s x y t h w)
+	
+	for c in Char {
+		case (GOTO ti tj ci cj s x y t h w) c c . (GOTO ti tj ci cj [ti > ci] [ti < ci] [tj > cj] [tj < cj] s x y t h w)
+		for b1 b2 in Bool {
+			case (GOTO ti tj ci cj true false b1 b2 s x y t h w) c c -> (GOTO ti tj ci [cj + 1] s x y t h w)
+			case (GOTO ti tj ci cj false true b1 b2 s x y t h w) c c <- (GOTO ti tj ci [cj - 1] s x y t h w)
+		}
+		case (GOTO ti tj ci cj false false true false s x y t h w) c c -> (GOTO ti tj ci [cj + 1] s x y t h w)
+		case (GOTO ti tj ci cj false false false true s x y t h w) c c <- (GOTO ti tj ci [cj - 1] s x y t h w)
+	}
+}
+
+for ti tj in Integer
+for s in State
+for x y in Edge
+for t h w in Integer
+for c in Char
+case (GOTO ti tj ti tj false false false false s x y t h w) c c . (s x y t h w ti tj)
+// END GOTO DEF
+
+// START NEXT DEF
+for ti tj ci cj t h w in Integer {
+	for c in Char {
+		case (NEXT ti tj ci cj t h w) c c . (NEXT ti tj ci cj [ti > 3] [tj > 3] t h w)
+		for b in Bool
+		case (NEXT ti tj ci cj b true t h w) c c . (GOTO ti [tj - 1] ci cj $ S S t h w)
+		case (NEXT ti tj ci cj true false t h w) c c . (GOTO [ti - 1] w ci cj $ S S t h w)
+	}
+}
+// END NEXT DEF
+
+// Count
+
+for i j in Integer {
+	case (Count i j) . . -> (Count [i + 1] 0)
+	case (Count i j) | | <- ($ 0 i j i j)
+	for c in Char
+	case (Count i j) c c -> (Count i [j + 1])
+}
+
+// Search
+
+for t h w i j in Integer {
+	for c in Char
+	case ($ S S t h w i j) c c . ($ t h w i j)
+	
+	for x in Edge
+	case ($ t h w i j) x + <- ($1 x t h w i [j - 1])
+	for c in Char - Edge
+	case ($ t h w i j) c + <- (NEXT i j i [j - 1] t h w)
+	
+	for x in Edge
+	for c in Char
+	case ($1 x t h w i j) c c <- ($1$ x t h w i [j - 1])
+	
+	for x y in Edge
+	case ($1$ x t h w i j) y y <- (GOTO [i - 1] [j + 1] i [j - 1] $2 x y t h w)
+	for x in Edge
+	for c in Char - Edge
+	case ($1$ x t h w i j) c c -> (NEXT i [j + 2] i [j + 1] t h w)
+	
+	for x y in Edge {
+		case ($2 x y t h w i j) A A <- (GOTO [i - 1] [j + 1] i [j - 1] $3 x y t h w)
+		for c in Char - { A }
+		case ($2 x y t h w i j) c c -> (NEXT [i + 1] [j + 1] i [j + 1] t h w)
+	}
+	
+	for x in Edge {
+		case ($3 x M t h w i j) S S <- ($4 x M t h w i [j - 1])
+		for c in Char - { S }
+		case ($3 x M t h w i j) c c . (NEXT [i + 2] j i j t h w)
+		
+		case ($3 x S t h w i j) M M <- ($4 x S t h w i [j - 1])
+		for c in Char - { M }
+		case ($3 x S t h w i j) c c . (NEXT [i + 2] j i j t h w)
+	}
+	
+	for x y in Edge
+	for c in Char
+	case ($4 x y t h w i j) c c <- ($4$ x y t h w i [j - 1])
+	
+	for x in Edge {
+		case ($4$ M x t h w i j) S S -> (NEXT [i + 2] [j + 2] i [j + 1] [t + 1] h w)
+		for c in Char - { S }
+		case ($4$ M x t h w i j) c c -> (NEXT [i + 2] [j + 2] i [j + 1] t h w)
+		
+		case ($4$ S x t h w i j) M M -> (NEXT [i + 2] [j + 2] i [j + 1] [t + 1] h w)
+		for c in Char - { M }
+		case ($4$ S x t h w i j) c c -> (NEXT [i + 2] [j + 2] i [j + 1] t h w)
+	}
+}
+
+// FINAL
+
+let Any Char + { + . }
+for t in Integer
+for a in Any {
+	for ti tj ci cj h w in Integer
+	case (NEXT ti tj ci cj false false t h w) a a -> (WRITE t)
+	
+	
+	case (WRITE t) a a -> (WRITE t)
+}
+
+for t in Integer
+case (WRITE t) | t ! HALT

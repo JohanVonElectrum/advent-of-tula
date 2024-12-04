@@ -1,0 +1,420 @@
+run Start {
+	|
+	M M M S X X M A S M .
+	M S A M X M S M S A .
+	A M X S X M A A M M .
+	M S A M A S M S M X .
+	X M A S A M X A M M .
+	X X A M M X X A M A .
+	S M S M S A S X S S .
+	S A X A M A S A A A .
+	M A M M M X M M M M .
+	M X M X A X M A S X |
+}
+
+let Char { X M A S + }
+let Direction { H V DL DR }
+let State {
+	$
+	$X $XM $XMA
+	$S $SA $SAM
+	NEXT
+}
+let Bool { true false }
+
+case Start | | -> (Count 1 0)
+
+// Count columns
+
+for j in Integer {
+	case (Count 1 j) . . -> (Count 2 j)
+	for c in Char
+	case (Count 1 j) c c -> (Count 1 [j + 1])
+}
+
+// Count rows
+
+for i in Integer - { 1 }
+for j in Integer {
+	case (Count i j) . . -> (Count [i + 1] j)
+	case (Count i j) | | <- ($ 0 i j i j i j)
+	for c in Char
+	case (Count i j) c c -> (Count i j)
+}
+
+// START GOTO DEF
+for t h w i j in Integer
+for s in State {
+	for ti tj in Integer {
+		for c in Char
+		for b in Bool
+		case (GOTO ti tj ti tj b s t h w i j) c c . (s t h w i j ti tj)
+		for ta tb in Integer {
+			for c in Char {
+				case (GOTO ti tj ta tb s t h w i j) c c . (GOTO ti tj ta tb [[ti > ta] || [[ta == ti] && [tj > tb]]] s t h w i j)
+				case (GOTO ti tj ta tb false s t h w i j) c c <- (GOTO ti tj ta [tb - 1] false s t h w i j)
+				case (GOTO ti tj ta tb true s t h w i j) c c -> (GOTO ti tj ta [tb + 1] true s t h w i j)
+			}
+			case (GOTO ti tj ta tb false s t h w i j) . . <- (GOTO ti tj [ta - 1] w false s t h w i j)
+			case (GOTO ti tj ta tb true s t h w i j) . . -> (GOTO ti tj [ta + 1] 1 true s t h w i j)
+		}
+	}
+	
+	for d1 in Direction {
+		for ti tj in Integer {
+			for c in Char
+			for b in Bool
+			case (GOTO ti tj ti tj b s d1 t h w i j) c c . (s d1 t h w i j ti tj)
+			for ta tb in Integer {
+				for c in Char {
+					case (GOTO ti tj ta tb s d1 t h w i j) c c . (GOTO ti tj ta tb [[ti > ta] || [[ta == ti] && [tj > tb]]] s d1 t h w i j)
+					case (GOTO ti tj ta tb false s d1 t h w i j) c c <- (GOTO ti tj ta [tb - 1] false s d1 t h w i j)
+					case (GOTO ti tj ta tb true s d1 t h w i j) c c -> (GOTO ti tj ta [tb + 1] true s d1 t h w i j)
+				}
+				case (GOTO ti tj ta tb false s d1 t h w i j) . . <- (GOTO ti tj [ta - 1] w false s d1 t h w i j)
+				case (GOTO ti tj ta tb true s d1 t h w i j) . . -> (GOTO ti tj [ta + 1] 1 true s d1 t h w i j)
+			}
+		}
+		
+		for d2 in Direction {
+			for ti tj in Integer {
+				for c in Char
+				for b in Bool
+				case (GOTO ti tj ti tj b s d1 d2 t h w i j) c c . (s d1 d2 t h w i j ti tj)
+				for ta tb in Integer {
+					for c in Char {
+						case (GOTO ti tj ta tb s d1 d2 t h w i j) c c . (GOTO ti tj ta tb [[ti > ta] || [[ta == ti] && [tj > tb]]] s d1 d2 t h w i j)
+						case (GOTO ti tj ta tb false s d1 d2 t h w i j) c c <- (GOTO ti tj ta [tb - 1] false s d1 d2 t h w i j)
+						case (GOTO ti tj ta tb true s d1 d2 t h w i j) c c -> (GOTO ti tj ta [tb + 1] true s d1 d2 t h w i j)
+					}
+					case (GOTO ti tj ta tb false s d1 d2 t h w i j) . . <- (GOTO ti tj [ta - 1] w false s d1 d2 t h w i j)
+					case (GOTO ti tj ta tb true s d1 d2 t h w i j) . . -> (GOTO ti tj [ta + 1] 1 true s d1 d2 t h w i j)
+				}
+			}
+			
+			for d3 in Direction {
+				for ti tj in Integer {
+					for c in Char
+					for b in Bool
+					case (GOTO ti tj ti tj b s d1 d2 d3 t h w i j) c c . (s d1 d2 d3 t h w i j ti tj)
+					for ta tb in Integer {
+						for c in Char {
+							case (GOTO ti tj ta tb s d1 d2 d3 t h w i j) c c . (GOTO ti tj ta tb [[ti > ta] || [[ta == ti] && [tj > tb]]] s d1 d2 d3 t h w i j)
+							case (GOTO ti tj ta tb false s d1 d2 d3 t h w i j) c c <- (GOTO ti tj ta [tb - 1] false s d1 d2 d3 t h w i j)
+							case (GOTO ti tj ta tb true s d1 d2 d3 t h w i j) c c -> (GOTO ti tj ta [tb + 1] true s d1 d2 d3 t h w i j)
+						}
+						case (GOTO ti tj ta tb false s d1 d2 d3 t h w i j) . . <- (GOTO ti tj [ta - 1] w false s d1 d2 d3 t h w i j)
+						case (GOTO ti tj ta tb true s d1 d2 d3 t h w i j) . . -> (GOTO ti tj [ta + 1] 1 true s d1 d2 d3 t h w i j)
+					}
+				}
+				
+				for d4 in Direction
+				for ti tj in Integer {
+					for c in Char
+					for b in Bool
+					case (GOTO ti tj ti tj b s d1 d2 d3 d4 t h w i j) c c . (s d1 d2 d3 d4 t h w i j ti tj)
+					for ta tb in Integer {
+						for c in Char {
+							case (GOTO ti tj ta tb s d1 d2 d3 d4 t h w i j) c c . (GOTO ti tj ta tb [[ti > ta] || [[ta == ti] && [tj > tb]]] s d1 d2 d3 d4 t h w i j)
+							case (GOTO ti tj ta tb false s d1 d2 d3 d4 t h w i j) c c <- (GOTO ti tj ta [tb - 1] false s d1 d2 d3 d4 t h w i j)
+							case (GOTO ti tj ta tb true s d1 d2 d3 d4 t h w i j) c c -> (GOTO ti tj ta [tb + 1] true s d1 d2 d3 d4 t h w i j)
+						}
+						case (GOTO ti tj ta tb false s d1 d2 d3 d4 t h w i j) . . <- (GOTO ti tj [ta - 1] w false s d1 d2 d3 d4 t h w i j)
+						case (GOTO ti tj ta tb true s d1 d2 d3 d4 t h w i j) . . -> (GOTO ti tj [ta + 1] 1 true s d1 d2 d3 d4 t h w i j)
+					}
+				}
+			}
+		}
+	}
+}
+// END GOTO DEF
+
+// START NEXT DEF
+for t h w i j a b in Integer {
+	case (NEXT t h w i j a b) + + <- (NEXT$ t h w i [j - 1])
+	for c in Char - { + }
+	case (NEXT t h w i j a b) c c . (GOTO i j a b NEXT t h w i j)
+}
+for t h w i j in Integer {
+	case (NEXT$ t h w i j) . . <- ($ t h w [i - 1] w [i - 1] w)
+	for c in Char - { . }
+	case (NEXT$ t h w i j) c c . ($ t h w i j i j)
+	
+	case (NEXT$ t h w i j) | t ! HALT
+}
+// END NEXT DEF
+
+for t h w i j a b in Integer {
+	// $ -> $X | $S
+	case ($ t h w i j a b) X + . ($X t h w i j a b [a >= 4] [b >= 4] [b <= [w - 3]])
+	case ($ t h w i j a b) S + . ($S t h w i j a b [a >= 4] [b >= 4] [b <= [w - 3]])
+	for c in Char - { X S }
+	case ($ t h w i j a b) c + . (NEXT t h w i j a b)
+	
+	// Init $X & $S
+	case ($X t h w i j a b true true false) + + . (GOTO a [b - 1] a b $X H V DL t h w i j)
+	case ($X t h w i j a b false true false) + + . (GOTO a [b - 1] a b $X H t h w i j)
+	case ($X t h w i j a b true false false) + + . (GOTO [a - 1] b a b $X V t h w i j)
+	case ($X t h w i j a b false false false) + + . (NEXT t h w i j a b)
+	
+	case ($X t h w i j a b true true true) + + . (GOTO a [b - 1] a b $X H V DL DR t h w i j)
+	case ($X t h w i j a b false true true) + + . (GOTO a [b - 1] a b $X H t h w i j)
+	case ($X t h w i j a b true false true) + + . (GOTO [a - 1] b a b $X V DR t h w i j)
+	case ($X t h w i j a b false false true) + + . (NEXT t h w i j a b)
+	
+	case ($S t h w i j a b true true false) + + . (GOTO a [b - 1] a b $S H V DL t h w i j)
+	case ($S t h w i j a b false true false) + + . (GOTO a [b - 1] a b $S H t h w i j)
+	case ($S t h w i j a b true false false) + + . (GOTO [a - 1] b a b $S V t h w i j)
+	case ($S t h w i j a b false false false) + + . (NEXT t h w i j a b)
+	
+	case ($S t h w i j a b true true true) + + . (GOTO a [b - 1] a b $S H V DL DR t h w i j)
+	case ($S t h w i j a b false true true) + + . (GOTO a [b - 1] a b $S H t h w i j)
+	case ($S t h w i j a b true false true) + + . (GOTO [a - 1] b a b $S V DR t h w i j)
+	case ($S t h w i j a b false false true) + + . (NEXT t h w i j a b)
+
+	// $X -> $XM
+
+	case ($X H t h w i j a b) M M . (GOTO i [b - 1] a b $XM H t h w i j)
+	for c in Char - { M }
+	case ($X H t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($X V t h w i j a b) M M . (GOTO [a - 1] j a b $XM V t h w i j)
+	for c in Char - { M }
+	case ($X V t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($X DL t h w i j a b) M M . (GOTO [a - 1] [b - 1] a b $XM DL t h w i j)
+	for c in Char - { M }
+	case ($X DL t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($X DR t h w i j a b) M M . (GOTO [a - 1] [b + 1] a b $XM DR t h w i j)
+	for c in Char - { M }
+	case ($X DR t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($X V DL DR t h w i j a b) M M . (GOTO [a - 1] j a b $XM V DL DR t h w i j)
+	for c in Char - { M } {
+		case ($X V DL t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $X DL t h w i j)
+		case ($X V DL DR t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $X DL DR t h w i j)
+		case ($X V DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $X DR t h w i j)
+	}
+	
+	case ($X DL DR t h w i j a b) M M . (GOTO [a - 1] [b - 1] a b $XM DL DR t h w i j)
+	for c in Char - { M }
+	case ($X DL DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $X DR t h w i j)
+	
+	case ($X H V DL DR t h w i j a b) M M . (GOTO i [b - 1] a b $XM H V DL DR t h w i j)
+	for c in Char - { M }
+	case ($X H V DL DR t h w i j a b) c c . (GOTO [i - 1] j a b $X V DL DR t h w i j)
+	
+	for d1 in Direction {
+		case ($X H V d1 t h w i j a b) M M . (GOTO i [b - 1] a b $XM H V d1 t h w i j)
+		for c in Char - { M }
+		case ($X H V d1 t h w i j a b) c c . (GOTO [i - 1] j a b $X V d1 t h w i j)
+		
+		case ($X V d1 t h w i j a b) M M . (GOTO [a - 1] j a b $XM V d1 t h w i j)
+	}
+	
+	// $XM -> $XMA
+	
+	case ($XM H t h w i j a b) A A . (GOTO i [b - 1] a b $XMA H t h w i j)
+	for c in Char - { A }
+	case ($XM H t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XM V t h w i j a b) A A . (GOTO [a - 1] j a b $XMA V t h w i j)
+	for c in Char - { A }
+	case ($XM V t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XM DL t h w i j a b) A A . (GOTO [a - 1] [b - 1] a b $XMA DL t h w i j)
+	for c in Char - { A }
+	case ($XM DL t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XM DR t h w i j a b) A A . (GOTO [a - 1] [b + 1] a b $XMA DR t h w i j)
+	for c in Char - { A }
+	case ($XM DR t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XM V DL DR t h w i j a b) A A . (GOTO [a - 1] j a b $XMA V DL DR t h w i j)
+	for c in Char - { A } {
+		case ($XM V DL t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $X DL t h w i j)
+		case ($XM V DL DR t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $X DL DR t h w i j)
+		case ($XM V DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $X DR t h w i j)
+	}
+	
+	case ($XM DL DR t h w i j a b) A A . (GOTO [a - 1] [b - 1] a b $XMA DL DR t h w i j)
+	for c in Char - { A }
+	case ($XM DL DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $X DR t h w i j)
+	
+	case ($XM H V DL DR t h w i j a b) A A . (GOTO i [b - 1] a b $XMA H V DL DR t h w i j)
+	for c in Char - { A }
+	case ($XM H V DL DR t h w i j a b) c c . (GOTO [i - 1] j a b $X V DL DR t h w i j)
+	
+	for d1 in Direction {
+		case ($XM H V d1 t h w i j a b) A A . (GOTO i [b - 1] a b $XMA H V d1 t h w i j)
+		for c in Char - { A }
+		case ($XM H V d1 t h w i j a b) c c . (GOTO [i - 1] j a b $X V d1 t h w i j)
+		
+		case ($XM V d1 t h w i j a b) A A . (GOTO [a - 1] j a b $XMA V d1 t h w i j)
+	}
+	
+	// $XMA -> ACCEPT
+	
+	case ($XMA H t h w i j a b) S S . (NEXT [t + 1] h w i j a b)
+	for c in Char - { S }
+	case ($XMA H t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XMA V t h w i j a b) S S . (NEXT [t + 1] h w i j a b)
+	for c in Char - { S }
+	case ($XMA V t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XMA DL t h w i j a b) S S . (NEXT [t + 1] h w i j a b)
+	for c in Char - { S }
+	case ($XMA DL t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XMA DR t h w i j a b) S S . (NEXT [t + 1] h w i j a b)
+	for c in Char - { S }
+	case ($XMA DR t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($XMA V DL t h w i j a b) S S . (GOTO [i - 1] [j - 1] a b $X DL [t + 1] h w i j)
+	case ($XMA V DL DR t h w i j a b) S S . (GOTO [i - 1] [j - 1] a b $X DL DR [t + 1] h w i j)
+	case ($XMA V DR t h w i j a b) S S . (GOTO [i - 1] [j + 1] a b $X DR [t + 1] h w i j)
+	for c in Char - { S } {
+		case ($XMA V DL t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $X DL t h w i j)
+		case ($XMA V DL DR t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $X DL DR t h w i j)
+		case ($XMA V DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $X DR t h w i j)
+	}
+	
+	case ($XMA DL DR t h w i j a b) S S . (GOTO [i - 1] [j + 1] a b $X DR [t + 1] h w i j)
+	for c in Char - { S }
+	case ($XMA DL DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $X DR t h w i j)
+	
+	case ($XMA H V DL DR t h w i j a b) S S . (GOTO [i - 1] j a b $X V DL DR [t + 1] h w i j)
+	for c in Char - { S }
+	case ($XMA H V DL DR t h w i j a b) c c . (GOTO [i - 1] j a b $X V DL DR t h w i j)
+	
+	for d1 in Direction {
+		case ($XMA H V d1 t h w i j a b) S S . (GOTO [i - 1] j a b $X V d1 [t + 1] h w i j)
+		for c in Char - { S }
+		case ($XMA H V d1 t h w i j a b) c c . (GOTO [i - 1] j a b $X V d1 t h w i j)
+	}
+	
+	// $S -> $SA
+
+	case ($S H t h w i j a b) A A . (GOTO i [b - 1] a b $SA H t h w i j)
+	for c in Char - { A }
+	case ($S H t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($S V t h w i j a b) A A . (GOTO [a - 1] j a b $SA V t h w i j)
+	for c in Char - { A }
+	case ($S V t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($S DL t h w i j a b) A A . (GOTO [a - 1] [b - 1] a b $SA DL t h w i j)
+	for c in Char - { A }
+	case ($S DL t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($S DR t h w i j a b) A A . (GOTO [a - 1] [b + 1] a b $SA DR t h w i j)
+	for c in Char - { A }
+	case ($S DR t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($S V DL DR t h w i j a b) A A . (GOTO [a - 1] j a b $SA V DL DR t h w i j)
+	for c in Char - { A } {
+		case ($S V DL t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $S DL t h w i j)
+		case ($S V DL DR t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $S DL DR t h w i j)
+		case ($S V DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $S DR t h w i j)
+	}
+	
+	case ($S DL DR t h w i j a b) A A . (GOTO [a - 1] [b - 1] a b $SA DL DR t h w i j)
+	for c in Char - { A }
+	case ($S DL DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $S DR t h w i j)
+	
+	case ($S H V DL DR t h w i j a b) A A . (GOTO i [b - 1] a b $SA H V DL DR t h w i j)
+	for c in Char - { A }
+	case ($S H V DL DR t h w i j a b) c c . (GOTO [i - 1] j a b $S V DL DR t h w i j)
+	
+	for d1 in Direction {
+		case ($S H V d1 t h w i j a b) A A . (GOTO i [b - 1] a b $SA H V d1 t h w i j)
+		for c in Char - { A }
+		case ($S H V d1 t h w i j a b) c c . (GOTO [i - 1] j a b $S V d1 t h w i j)
+		
+		case ($S V d1 t h w i j a b) A A . (GOTO [a - 1] j a b $SA V d1 t h w i j)
+	}
+	
+	// $SA -> $SAM
+	
+	case ($SA H t h w i j a b) M M . (GOTO i [b - 1] a b $SAM H t h w i j)
+	for c in Char - { M }
+	case ($SA H t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SA V t h w i j a b) M M . (GOTO [a - 1] j a b $SAM V t h w i j)
+	for c in Char - { M }
+	case ($SA V t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SA DL t h w i j a b) M M . (GOTO [a - 1] [b - 1] a b $SAM DL t h w i j)
+	for c in Char - { M }
+	case ($SA DL t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SA DR t h w i j a b) M M . (GOTO [a - 1] [b + 1] a b $SAM DR t h w i j)
+	for c in Char - { M }
+	case ($SA DR t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SA V DL DR t h w i j a b) M M . (GOTO [a - 1] j a b $SAM V DL DR t h w i j)
+	for c in Char - { M } {
+		case ($SA V DL t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $S DL t h w i j)
+		case ($SA V DL DR t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $S DL DR t h w i j)
+		case ($SA V DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $S DR t h w i j)
+	}
+	
+	case ($SA DL DR t h w i j a b) M M . (GOTO [a - 1] [b - 1] a b $SAM DL DR t h w i j)
+	for c in Char - { M }
+	case ($SA DL DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $S DR t h w i j)
+	
+	case ($SA H V DL DR t h w i j a b) M M . (GOTO i [b - 1] a b $SAM H V DL DR t h w i j)
+	for c in Char - { M }
+	case ($SA H V DL DR t h w i j a b) c c . (GOTO [i - 1] j a b $S V DL DR t h w i j)
+	
+	for d1 in Direction {
+		case ($SA H V d1 t h w i j a b) M M . (GOTO i [b - 1] a b $SAM H V d1 t h w i j)
+		for c in Char - { M }
+		case ($SA H V d1 t h w i j a b) c c . (GOTO [i - 1] j a b $S V d1 t h w i j)
+		
+		case ($SA V d1 t h w i j a b) M M . (GOTO [a - 1] j a b $SAM V d1 t h w i j)
+	}
+	
+	// $SAM -> ACCEPT
+	
+	case ($SAM H t h w i j a b) X X . (NEXT [t + 1] h w i j a b)
+	for c in Char - { X }
+	case ($SAM H t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SAM V t h w i j a b) X X . (NEXT [t + 1] h w i j a b)
+	for c in Char - { X }
+	case ($SAM V t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SAM DL t h w i j a b) X X . (NEXT [t + 1] h w i j a b)
+	for c in Char - { X }
+	case ($SAM DL t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SAM DR t h w i j a b) X X . (NEXT [t + 1] h w i j a b)
+	for c in Char - { X }
+	case ($SAM DR t h w i j a b) c c . (NEXT t h w i j a b)
+	
+	case ($SAM V DL t h w i j a b) X X . (GOTO [i - 1] [j - 1] a b $S DL [t + 1] h w i j)
+	case ($SAM V DL DR t h w i j a b) X X . (GOTO [i - 1] [j - 1] a b $S DL DR [t + 1] h w i j)
+	case ($SAM V DR t h w i j a b) X X . (GOTO [i - 1] [j + 1] a b $S DR [t + 1] h w i j)
+	for c in Char - { X } {
+		case ($SAM V DL t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $S DL t h w i j)
+		case ($SAM V DL DR t h w i j a b) c c . (GOTO [i - 1] [j - 1] a b $S DL DR t h w i j)
+		case ($SAM V DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $S DR t h w i j)
+	}
+	
+	case ($SAM DL DR t h w i j a b) X X . (GOTO [i - 1] [j + 1] a b $S DR [t + 1] h w i j)
+	for c in Char - { X }
+	case ($SAM DL DR t h w i j a b) c c . (GOTO [i - 1] [j + 1] a b $S DR t h w i j)
+	
+	case ($SAM H V DL DR t h w i j a b) X X . (GOTO [i - 1] j a b $S V DL DR [t + 1] h w i j)
+	for c in Char - { X }
+	case ($SAM H V DL DR t h w i j a b) c c . (GOTO [i - 1] j a b $S V DL DR t h w i j)
+	
+	for d1 in Direction {
+		case ($SAM H V d1 t h w i j a b) X X . (GOTO [i - 1] j a b $S V d1 [t + 1] h w i j)
+		for c in Char - { X }
+		case ($SAM H V d1 t h w i j a b) c c . (GOTO [i - 1] j a b $S V d1 t h w i j)
+	}
+}
