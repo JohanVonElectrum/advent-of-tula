@@ -1,0 +1,160 @@
+run Start {
+	|
+	47 . 53
+	97 . 13
+	97 . 61
+	97 . 47
+	75 . 29
+	61 . 13
+	75 . 53
+	29 . 13
+	97 . 29
+	53 . 29
+	61 . 53
+	97 . 53
+	61 . 29
+	47 . 13
+	75 . 47
+	97 . 75
+	47 . 61
+	75 . 61
+	47 . 29
+	75 . 13
+	53 . 13
+	|
+	75 47 61 53 29 .
+	97 61 53 29 13 .
+	75 29 13 .
+	75 97 47 61 53 .
+	61 13 29 .
+	97 13 75 29 47 |
+}
+
+let Any Integer + { . + }
+let State { SETUP GRAB CHECK COUNT }
+
+case Start | | -> (FORWARD SETUP 0 0)
+
+// START FORWARD DEF
+for n m in Integer
+for s in State {
+	for x in Any
+	case (FORWARD s n m) x x -> (FORWARD s n m)
+	case (FORWARD s n m) | | -> (s n m)
+}
+// END FORWARD DEF
+
+// START BACK DEF
+for n m in Integer
+for s in State {
+	for x in Any
+	case (BACK s n m) x x <- (BACK s n m)
+	case (BACK s n m) | | <- (s n m)
+}
+// END BACK DEF
+
+// START SETUP DEF
+for x in Integer
+case (SETUP 0 0) x x <- SETUP
+case SETUP | | <- GRAB
+// END SETUP DEF
+
+// START GRAB DEF
+case GRAB + + <- GRAB
+for m in Integer {
+	case GRAB m + <- (GRAB m)
+	case (GRAB m) . + <- (GRAB m)
+	for n in Integer
+	case (GRAB m) n + -> (FORWARD CHECK n m)
+}
+for n m in Integer
+case (GRAB n m) + + <- GRAB
+case GRAB | | -> (FORWARD COUNT 0 0)
+// END GRAB DEF
+
+// START CHECK DEF
+for n m in Integer {
+	case (CHECK n m ) m m -> (DENY n m)
+	for x in Integer - { m }
+	case (CHECK n m) x x -> (CHECK n m)
+	case (CHECK n m) + + -> (CHECK n m)
+	case (CHECK n m) . . . (ACCEPT n m)
+	case (CHECK n m) | | . (ACCEPT n m)
+}
+// END CHECK DEF
+
+// START ACCEPT DEF
+for n m in Integer {
+	for x in Integer
+	case (ACCEPT n m) x x -> (ACCEPT n m)
+	case (ACCEPT n m) . . -> (CHECK n m)
+	case (ACCEPT n m) | | <- (BACK GRAB n m)
+}
+// END ACCEPT DEF
+
+// START DENY DEF
+for n m in Integer {
+	case (DENY n m) n n <- (DENIED n m)
+	for x in Integer - { n }
+	case (DENY n m) x x -> (DENY n m)
+	case (DENY n m) . . -> (CHECK n m)
+	case (DENY n m) | | <- (BACK GRAB n m)
+}
+// END DENY DEF
+
+// START DENIED DEF
+for n m in Integer {
+	for x in Integer
+	case (DENIED n m) x x <- (DENIED n m)
+	case (DENIED n m) . . -> (REMOVE n m)
+	case (DENIED n m) | | -> (REMOVE n m)
+}
+// END DENIED DEF
+
+// START REMOVE DEF
+for n m in Integer {
+	for x in Integer
+	case (REMOVE n m) x + -> (REMOVE n m)
+	case (REMOVE n m) . . -> (CHECK n m)
+	case (REMOVE n m) | | <- (BACK GRAB n m)
+}
+// END REMOVE DEF
+
+// START COUNT DEF
+for t n in Integer {
+	for x in Integer
+	case (COUNT t n) x x -> (COUNT t [n + 1])
+	case (COUNT t n) . . <- (GET t [[n / 2] + 1] n)
+	case (COUNT t n) | | <- (GET t [[n / 2] + 1] n)
+	case (COUNT t n) + + -> (NEXT t)
+}
+for x in Integer
+case (COUNT 0 0) x x -> (COUNT 0 1)
+// END COUNT DEF
+
+// START GET DEF
+for t n x in Integer {
+	case (GET t n n) x x -> (NEXT [t + x])
+	for m in Integer - { n }
+	case (GET t n m) x x <- (GET t n [m - 1])
+}
+// END GET DEF
+
+// START NEXT DEF
+for t in Integer {
+	for x in Integer
+	case (NEXT t) x x -> (NEXT t)
+	case (NEXT t) + + -> (NEXT t)
+	case (NEXT t) . . -> (COUNT t 0)
+}
+// END NEXT DEF
+
+
+// FINAL
+for t in Integer {
+	case (NEXT t) | | -> (FINAL t)
+	case (FINAL t) | t -> FINAL
+}
+case FINAL | | <- FINAL
+for x in Integer
+case FINAL x x ! HALT

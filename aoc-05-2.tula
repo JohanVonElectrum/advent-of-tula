@@ -1,0 +1,161 @@
+run Start {
+	|
+	47 . 53
+	97 . 13
+	97 . 61
+	97 . 47
+	75 . 29
+	61 . 13
+	75 . 53
+	29 . 13
+	97 . 29
+	53 . 29
+	61 . 53
+	97 . 53
+	61 . 29
+	47 . 13
+	75 . 47
+	97 . 75
+	47 . 61
+	75 . 61
+	47 . 29
+	75 . 13
+	53 . 13
+	|
+	75 47 61 53 29 .
+	97 61 53 29 13 .
+	75 29 13 .
+	75 97 47 61 53 .
+	61 13 29 .
+	97 13 75 29 47 | 143 |
+}
+
+let Any Integer + { . }
+let State { SETUP GRAB FETCH CHECK COUNT }
+
+case Start | | -> (FORWARD SETUP 0 0 0)
+
+// START FORWARD DEF
+for p n m in Integer
+for s in State {
+	for x in Any
+	case (FORWARD s p n m) x x -> (FORWARD s p n m)
+	case (FORWARD s p n m) | | -> (s p n m)
+}
+// END FORWARD DEF
+
+// START BACK DEF
+for p n m in Integer
+for s in State {
+	for x in Any
+	case (BACK s p n m) x x <- (BACK s p n m)
+	case (BACK s p n m) | | <- (s p n m)
+}
+// END BACK DEF
+
+// START SETUP DEF
+for x in Integer
+case (SETUP 0 0 0) x x <- SETUP
+case SETUP | | <- (GRAB 0)
+// END SETUP DEF
+
+// START GRAB DEF
+for p m in Integer {
+	case (GRAB p) m m <- (GRAB p m)
+	case (GRAB p m) . . <- (GRAB p m)
+	for n in Integer
+	case (GRAB p m) n n -> (FORWARD CHECK [p + 1] n m)
+}
+// END GRAB DEF
+
+// START FETCH DEF
+for p in Integer {
+	for x in Integer
+	case (FETCH p p) x x . (GRAB p)
+	for i in Integer - { p } {
+		for x in Integer
+		case (FETCH p i) x x <- (FETCH p i)
+		case (FETCH p i) . . <- (FETCH$ p i)
+		for x in Integer
+		case (FETCH$ p i) x x <- (FETCH p [i + 1])
+	}
+	case (FETCH p p) | | -> (FORWARD COUNT 0 0 0)
+}
+for p n m x in Integer
+case (FETCH p n m) x x . (FETCH p 0)
+// END FETCH DEF
+
+// START CHECK DEF
+for p n m in Integer {
+	case (CHECK p n m ) m m -> (DENY p n m)
+	for x in Integer - { m }
+	case (CHECK p n m) x x -> (CHECK p n m)
+	case (CHECK p n m) + + -> (CHECK p n m)
+	case (CHECK p n m) . . . (ACCEPT p n m)
+	case (CHECK p n m) | | . (ACCEPT p n m)
+}
+// END CHECK DEF
+
+// START ACCEPT DEF
+for p n m in Integer {
+	for x in Integer
+	case (ACCEPT p n m) x x -> (ACCEPT p n m)
+	case (ACCEPT p n m) . . -> (CHECK p n m)
+	case (ACCEPT p n m) | | <- (BACK FETCH p n m)
+}
+// END ACCEPT DEF
+
+// START DENY DEF
+for p n m in Integer {
+	case (DENY p n m) n m <- (REPLACE 0 n m)
+	for x in Integer - { n }
+	case (DENY p n m) x x -> (DENY p n m)
+	case (DENY p n m) . . -> (CHECK p n m)
+	case (DENY p n m) | | <- (BACK FETCH p n m)
+}
+// END DENY DEF
+
+// START REPLACE DEF
+for n m in Integer {
+	case (REPLACE 0 n m) m n -> (CHECK 0 n m)
+	for x in Integer - { m }
+	case (REPLACE 0 n m) x x <- (REPLACE 0 n m)
+}
+// END REPLACE DEF
+
+// START COUNT DEF
+for t n in Integer {
+	for x in Integer
+	case (COUNT t n) x x -> (COUNT t [n + 1])
+	case (COUNT t n) . . <- (GET t [[n / 2] + 1] n)
+	case (COUNT t n) | | <- (GET t [[n / 2] + 1] n)
+	case (COUNT t n) + + -> (NEXT t)
+}
+for x in Integer
+case (COUNT 0 0 0) x x -> (COUNT 0 1)
+// END COUNT DEF
+
+// START GET DEF
+for t n x in Integer {
+	case (GET t n n) x x -> (NEXT [t + x])
+	for m in Integer - { n }
+	case (GET t n m) x x <- (GET t n [m - 1])
+}
+// END GET DEF
+
+// START NEXT DEF
+for t in Integer {
+	for x in Integer
+	case (NEXT t) x x -> (NEXT t)
+	case (NEXT t) + + -> (NEXT t)
+	case (NEXT t) . . -> (COUNT t 0)
+}
+// END NEXT DEF
+
+
+// FINAL
+for t in Integer {
+	case (NEXT t) | | -> (FINAL t)
+	for n in Integer
+	case (FINAL t) n [t - n] ! HALT
+}
