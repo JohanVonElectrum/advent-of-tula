@@ -1,0 +1,136 @@
+run START {
+	=
+	. . . . # . . . . . |
+	. . . . . . . . . # |
+	. . . . . . . . . . |
+	. . # . . . . . . . |
+	. . . . . . . # . . |
+	. . . . . . . . . . |
+	. # . . ^ . . . . . |
+	. . . . . . . . # . |
+	# . . . . . . . . . |
+	. . . . . . # . . . |
+	=
+}
+
+let Map { . # + }
+let Guard { ^ > v < }
+let Any Map + Guard
+let Direction { UP RIGHT DOWN LEFT }
+let Bool { true false }
+
+case START = = -> (COUNT 0 0)
+
+// START GOTO
+for w h tx ty cx cy in Integer
+for dir in Direction {
+	for m in Map {
+		case (GOTO w h tx ty cx cy dir) m m . (GOTO w h tx ty cx cy [ty > cy] [cy > ty] [tx > cx] [cx > tx] dir)
+		
+		case (GOTO w h tx ty cx cy false false false false dir) m m . (dir w h tx ty)
+		for b1 b2 in Bool {
+			case (GOTO w h tx ty cx cy false true b1 b2 dir) m m <- (GOTO w h tx ty [cx - 1] cy L dir)
+			case (GOTO w h tx ty cx cy true false b1 b2 dir) m m -> (GOTO w h tx ty [cx + 1] cy R dir)
+		}
+		case (GOTO w h tx ty cx cy false false false true dir) m m <- (GOTO w h tx ty [cx - 1] cy L dir)
+		case (GOTO w h tx ty cx cy false false true false dir) m m -> (GOTO w h tx ty [cx + 1] cy R dir)
+		
+		for d in { L R }
+		case (GOTO w h tx ty cx cy d dir) m m . (GOTO w h tx ty cx cy dir)
+	}
+	
+	case (GOTO w h tx ty cx cy L dir) | | <- (GOTO w h tx ty w [cy - 1] dir)
+	case (GOTO w h tx ty cx cy R dir) | | -> (GOTO w h tx ty 1 [cy + 1] dir)
+}
+// END GOTO
+
+// START COUNT
+for w in Integer
+for a in Any
+case (COUNT w 0) a a -> (COUNT [w + 1] 0)
+
+for w h in Integer {
+	for a in Any
+	case (COUNT w h) a a -> (COUNT w h)
+	case (COUNT w h) | | -> (COUNT w [h + 1])
+	
+	for a in Any
+	case (COUNT w h) a a -> (COUNT w h)
+	case (COUNT w h) = = <- (SEARCH w h 0 [h + 1])
+}
+// END COUNT
+
+// START SEARCH
+for w h x y in Integer {
+	for m in Map
+	case (SEARCH w h x y) m m <- (SEARCH w h [x - 1] y)
+	case (SEARCH w h x y) | | <- (SEARCH w h w [y - 1])
+	
+	case (SEARCH w h x y) ^ + . (GOTO w h x [y - 1] x y UP)
+	case (SEARCH w h x y) > + -> (RIGHT w h [x + 1] y)
+	case (SEARCH w h x y) v + . (GOTO w h x [y + 1] x y DOWN)
+	case (SEARCH w h x y) < + <- (LEFT w h [x - 1] y)
+}
+// END SEARCH
+
+// START MOVE
+for w h x y in Integer {
+	for m in { . + }
+	case (UP w h x y) m + . (GOTO w h x [y - 1] x y UP)
+	case (UP w h x y) # # . (GOTO w h x [y + 1] x y RIGHT)
+	
+	for m in { . + }
+	case (RIGHT w h x y) m + -> (RIGHT w h [x + 1] y)
+	case (RIGHT w h x y) # # <- (DOWN w h [x - 1] y)
+	
+	for m in { . + }
+	case (DOWN w h x y) m + . (GOTO w h x [y + 1] x y DOWN)
+	case (DOWN w h x y) # # . (GOTO w h x [y - 1] x y LEFT)
+	
+	for m in { . + }
+	case (LEFT w h x y) m + <- (LEFT w h [x - 1] y)
+	case (LEFT w h x y) # # -> (UP w h [x + 1] y)
+}
+// END MOVE
+
+// START EDGE
+for w h x y in Integer {
+	case (LEFT w h x y) | | . (EDGE [[w + 1] * h] [[w + 1] * [y - 1]])
+	case (RIGHT w h x y) | | . (EDGE [[w + 1] * h] [[w + 1] * [y - 1]])
+}
+for a b in Integer
+case (EDGE a b) | | . (EDGE [[[a - b] + 1] <= b])
+for m in { . # + | } {
+	case (EDGE false) m m <- (EDGE false)
+	case (EDGE true) m m -> (EDGE true)
+}
+// END EDGE
+
+// START COUNT ENTRY
+for w h tx ty cx cy in Integer {
+	case (GOTO w h tx ty cx cy DOWN) = = <- (COUNT L 0)
+	case (GOTO w h tx ty cx cy UP) = = -> (COUNT R 0)
+}
+for w h x y in Integer {
+	case (LEFT w h x y) = = -> (COUNT R 0)
+	case (RIGHT w h x y) = = <- (COUNT L 0)
+}
+case (EDGE false) = = -> (COUNT R 0)
+case (EDGE true) = = <- (COUNT L 0)
+// END COUNT ENTRY
+
+// START COUNT
+for t in Integer {
+	for m in { . # | } {
+		case (COUNT R t) m m -> (COUNT R t)
+		case (COUNT L t) m m <- (COUNT L t)
+	}
+	case (COUNT R t) + + -> (COUNT R [t + 1])
+	case (COUNT L t) + + <- (COUNT L [t + 1])
+}
+// END COUNT
+
+// START FINAL
+for t in Integer
+for d in { L R }
+case (COUNT d t) = t ! HALT
